@@ -45,6 +45,8 @@ import socket
 import subprocess
 import sys
 
+from dulwich.s3client import S3Repo
+
 try:
     from urllib import quote as urlquote
     from urllib import unquote as urlunquote
@@ -1703,6 +1705,8 @@ def get_transport_and_path_from_url(url, config=None, **kwargs):
     elif parsed.scheme == 'file':
         return default_local_git_client_cls.from_parsedurl(
             parsed, **kwargs), parsed.path
+    elif parsed.scheme in ('s3'):
+        return S3Repo.from_parsedurl(parsed, **kwargs)
 
     raise ValueError("unknown scheme '%s'" % parsed.scheme)
 
