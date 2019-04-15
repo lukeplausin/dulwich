@@ -81,7 +81,7 @@ class S3RefsContainer(RefsContainer, S3PrefixFS):
 			Prefix=path_prefix
 		)
 		refs = [
-			k['Key'][sublen:]
+			encode_bin(k['Key'][sublen:])
 			for k in keys['Contents']
 			if not k['Key'].endswith('/')
 		]
@@ -93,15 +93,15 @@ class S3RefsContainer(RefsContainer, S3PrefixFS):
 				Marker=keys['NextMarker']
 			)
 			refs.append([
-				k['Key'][sublen:] 
+				encode_bin(k['Key'][sublen:])
 				for k in keys['Contents']
 				if not k['Key'].endswith('/')
 			])
 
 		if self.client.get_object(
 				Bucket=self.bucket_name,
-				Key=self._calc_ref_path('HEAD')):
-			refs.append('HEAD')
+				Key=self._calc_ref_path(b'HEAD')):
+			refs.append(b'HEAD')
 		return refs
 
 	def read_loose_ref(self, name):
@@ -362,7 +362,7 @@ class S3ObjectStore(PackBasedObjectStore, S3PrefixFS):
 				Prefix=path_prefix,
 				Marker=keys['NextMarker']
 			)
-			packs.append([
+			objects.append([
 				k['Key']
 				for k in keys['Contents']
 				if len(k['Key']) == valid_len
@@ -414,7 +414,7 @@ class S3Repo(BaseRepo):
 
 	def _init(self):
 		log.debug('Initializing S3 repository')
-		self.refs.set_symbolic_ref(b'HEAD', 'refs/heads/master')
+		self.refs.set_symbolic_ref(b'HEAD', b'refs/heads/master')
 
 	@classmethod
 	def from_parsedurl(cls, parsedurl, **kwargs):
@@ -436,3 +436,9 @@ def decode_bin(bin, encoding='utf8'):
 		return bin.decode(encoding)
 	else:
 		return bin
+
+def encode_bin(bin, encoding='utf8'):
+	if isinstance(bin, bytes):
+		return bin
+	else:
+		return bin.encode(encoding)

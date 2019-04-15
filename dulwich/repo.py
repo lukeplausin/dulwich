@@ -624,8 +624,8 @@ class BaseRepo(object):
         :raise KeyError: when the specified ref or object does not exist
         """
         if not isinstance(name, bytes):
-            raise TypeError("'name' must be bytestring, not %.80s" %
-                            type(name).__name__)
+            raise TypeError("'{}' must be bytestring, not {}".format(
+                            name, type(name).__name__))
         if len(name) in (20, 40):
             try:
                 return self.object_store[name]
